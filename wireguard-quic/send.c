@@ -20,7 +20,7 @@
 
 static void wg_packet_send_handshake_initiation(struct wg_peer *peer)
 {
-	struct message_handshake_initiation packet = { 0 };
+	struct message_handshake_initiation packet;
 
 	if (!wg_birthdate_has_expired(atomic64_read(&peer->last_sent_handshake),
 				      REKEY_TIMEOUT))
@@ -84,7 +84,7 @@ out:
 
 void wg_packet_send_handshake_response(struct wg_peer *peer)
 {
-	struct message_handshake_response packet = { 0 };
+	struct message_handshake_response packet;
 
 	atomic64_set(&peer->last_sent_handshake, ktime_get_coarse_boottime_ns());
 	net_dbg_ratelimited("%s: Sending handshake response to peer %llu (%pISpfsc)\n",
@@ -203,7 +203,7 @@ static bool encrypt_packet(struct sk_buff *skb, struct noise_keypair *keypair)
 	 */
 	skb_set_inner_network_header(skb, 0);
 	header = (struct message_data *)skb_push(skb, sizeof(*header));
-	header->header.type = cpu_to_le32(obfuscate_type(MESSAGE_DATA));
+	header->header.type = cpu_to_le32(MESSAGE_DATA);
 	header->key_idx = keypair->remote_index;
 	header->counter = cpu_to_le64(PACKET_CB(skb)->nonce);
 	pskb_put(skb, trailer, trailer_len);

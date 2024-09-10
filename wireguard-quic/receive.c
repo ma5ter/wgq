@@ -23,28 +23,22 @@ static void update_rx_stats(struct wg_peer *peer, size_t len)
 	peer->rx_bytes += len;
 }
 
-// obfuscate type
-__le32 obfuscate_type_random = 77232917ul;
-// deobfuscate type
-static inline __le32 SKB_TYPE_LE32(struct sk_buff *skb) {
-	return ((((struct message_header *)(skb)->data)->type) >> 13) & 7;
-}
+#define SKB_TYPE_LE32(skb) (((struct message_header *)(skb)->data)->type)
 
 static size_t validate_header_len(struct sk_buff *skb)
 {
 	if (unlikely(skb->len < sizeof(struct message_header)))
 		return 0;
-	const __le32 type = SKB_TYPE_LE32(skb);
-	if (type == cpu_to_le32(MESSAGE_DATA) &&
+	if (SKB_TYPE_LE32(skb) == cpu_to_le32(MESSAGE_DATA) &&
 	    skb->len >= MESSAGE_MINIMUM_LENGTH)
 		return sizeof(struct message_data);
-	if (type == cpu_to_le32(MESSAGE_HANDSHAKE_INITIATION) &&
+	if (SKB_TYPE_LE32(skb) == cpu_to_le32(MESSAGE_HANDSHAKE_INITIATION) &&
 	    skb->len == sizeof(struct message_handshake_initiation))
 		return sizeof(struct message_handshake_initiation);
-	if (type == cpu_to_le32(MESSAGE_HANDSHAKE_RESPONSE) &&
+	if (SKB_TYPE_LE32(skb) == cpu_to_le32(MESSAGE_HANDSHAKE_RESPONSE) &&
 	    skb->len == sizeof(struct message_handshake_response))
 		return sizeof(struct message_handshake_response);
-	if (type == cpu_to_le32(MESSAGE_HANDSHAKE_COOKIE) &&
+	if (SKB_TYPE_LE32(skb) == cpu_to_le32(MESSAGE_HANDSHAKE_COOKIE) &&
 	    skb->len == sizeof(struct message_handshake_cookie))
 		return sizeof(struct message_handshake_cookie);
 	return 0;
@@ -132,8 +126,8 @@ static void wg_receive_handshake_packet(struct wg_device *wg,
 	} else if (under_load && mac_state == VALID_MAC_BUT_NO_COOKIE) {
 		packet_needs_cookie = true;
 	} else {
-		net_dbg_skb_ratelimited("%s: Invalid MAC of handshake, dropping packet from %pISpfsc state %d\n",
-					wg->dev->name, skb, mac_state);
+		net_dbg_skb_ratelimited("%s: Invalid MAC of handshake, dropping packet from %pISpfsc\n",
+					wg->dev->name, skb);
 		return;
 	}
 

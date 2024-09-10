@@ -185,7 +185,7 @@ void wg_cookie_message_create(struct message_handshake_cookie *dst,
 		((u8 *)skb->data + skb->len - sizeof(*macs));
 	u8 cookie[COOKIE_LEN];
 
-	dst->header.type = cpu_to_le32(obfuscate_type(MESSAGE_HANDSHAKE_COOKIE));
+	dst->header.type = cpu_to_le32(MESSAGE_HANDSHAKE_COOKIE);
 	dst->receiver_index = index;
 	get_random_bytes_wait(dst->nonce, COOKIE_NONCE_LEN);
 

@@ -61,9 +61,6 @@ enum message_type {
 	MESSAGE_DATA = 4
 };
 
-extern __le32 obfuscate_type_random;
-#define obfuscate_type(type) ( obfuscate_type_random = ((obfuscate_type_random + 756839) * 13466917), ((type << 13) | (obfuscate_type_random & ~(7 << 13))))
-
 struct message_header {
 	/* The actual layout of this that we want is:
 	 * u8 type
@@ -87,7 +84,6 @@ struct message_handshake_initiation {
 	u8 encrypted_static[noise_encrypted_len(NOISE_PUBLIC_KEY_LEN)];
 	u8 encrypted_timestamp[noise_encrypted_len(NOISE_TIMESTAMP_LEN)];
 	struct message_macs macs;
-	u8 unused[108];
 };
 
 struct message_handshake_response {
@@ -97,7 +93,6 @@ struct message_handshake_response {
 	u8 unencrypted_ephemeral[NOISE_PUBLIC_KEY_LEN];
 	u8 encrypted_nothing[noise_encrypted_len(0)];
 	struct message_macs macs;
-	u8 unused[36];
 };
 
 struct message_handshake_cookie {
